@@ -43,9 +43,7 @@ app.put('/compleated',async (req,res)=>{
         })
         return
     }
-    await todoModel.update({
-        _id: req.body.id
-    },{
+    await todoModel.findByIdAndUpdate( req.body.id,{
         completed: true
     })
     res.json({
