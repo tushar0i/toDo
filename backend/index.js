@@ -4,8 +4,11 @@ const app = express()
 const dotenv = require('dotenv').config()
 const mongoose = require('mongoose')
 const { todoModel } = require("./database")
+const cors = require('cors')
 app.use(express.json())
-
+app.use(cors({
+    origin:"http://localhost:5173"
+}))
 const PORT = 3000
 
 app.post('/todo',async (req,res)=>{
