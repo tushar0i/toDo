@@ -1,11 +1,14 @@
 const express = require("express")
 const { todoSchema, complSchema } = require("./inpvalid")
 const app = express()
+const dotenv = require('dotenv').config()
+const mongoose = require('mongoose')
+const { todoModel } = require("./database")
 app.use(express.json())
 
 const PORT = 3000
 
-app.post('/todo',(req,res)=>{
+app.post('/todo',async (req,res)=>{
     const takeInput = req.body
     const checkInput = todoSchema.safeParse(takeInput)
     if( !checkInput.success){
@@ -14,29 +17,39 @@ app.post('/todo',(req,res)=>{
         })
         return 
     }
-    // sending data to the database
-    res.json({ // just for testing things
-        message:"everything is fine in here"
+    await todoModel.create({
+        title: takeInput.title,
+        description: takeInput.description,
+        completed: false
+    })
+    res.json({ 
+        message:"Task added successfully"
     })
 })
 
-app.get('/todo',(req,res)=>{
-    // fetch data from backend and give it to frontend
+app.get('/todo',async (req,res)=>{
+    const todos = await todoModel.find({})
+    res.json({
+        todos
+    })
 })
 
-app.put('/compleated', (req,res)=>{
+app.put('/compleated',async (req,res)=>{
     const takeInput = req.body
     const checkInput = complSchema.safeParse(takeInput)
-    console.log(checkInput) // just for testing things
     if(!checkInput.success){
         res.status(411).json({
             message: "Wrong input sent"
         })
         return
     }
-    // update the data base 
-    res.json({// just for testing things
-        message:"everything is fine in here"
+    await todoModel.update({
+        _id: req.body.id
+    },{
+        completed: true
+    })
+    res.json({
+        message:"Marked as done"
     })
 })
 
@@ -47,8 +60,12 @@ app.use((err,req,res,next)=>{
     })
 })
 
-app.listen(PORT,()=>{
-    console.log(`Server is running on http://localhost:${PORT}`)
-})
 
+async function main() {
+    await mongoose.connect(dotenv.parsed.MONGODB_URL)
+    app.listen(PORT,()=>{
+        console.log(`Server is running on http://localhost:${PORT}`)
+    })
+}
 
+main()
